@@ -1,0 +1,47 @@
+import numpy as np
+import cv2
+
+def dibujar(mask,color):
+    contornos, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for c in contornos:
+        area=cv2.contourArea(c)
+        if area>3000:
+            x,y,w,h=cv2.boundingRect(c)
+            if color==(255,0,0):
+                cv2.rectangle(frame,(x,y),(x+w,y+h),color,3)
+                cv2.line(frame,(x,y),(x+w,y+h),color,3)
+                cv2.line(frame,(x+w,y),(x,y+h),color,3)
+                cv2.putText(frame, "COlOR AZUL",(x+10,y+10),cv2.FONT_HERSHEY_SIMPLEX,0.75,color,2,cv2.LINE_AA)
+            if color==(0,255,255):
+                M=cv2.moments(c)
+                if (M['m00']==0): M["moo"]=1
+                xcentro=int(M["m10"]/M['m00'])
+                ycentro=int(M['m01']/M['m00'])
+                radio=xcentro-x
+                cv2.circle(frame,(xcentro,ycentro),radio,color,3)
+                cv2.putText(frame,"Amarillo",(x-10,y-10),cv2.FONT_HERSHEY_SIMPLEX,0.75,color,2,cv2.LINE_AA)
+
+
+cap=cv2.VideoCapture(0)
+
+azulBajo=np.array([100,100,20],np.uint8)
+azulAlto=np.array([125,255,255],np.uint8)
+
+amarilloBajo=np.array([15,100,20],np.uint8)
+amarilloAlto=np.array([45,255,255],np.uint8)
+
+while True:
+    ret,frame=cap.read()
+    if ret==True:
+        frameHSV=cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+        maskAmarillo=cv2.inRange(frameHSV,amarilloBajo,amarilloAlto)
+        maskAzul=cv2.inRange(frameHSV,azulBajo,azulAlto)
+        dibujar(maskAzul,(255,0,0))
+        dibujar(maskAmarillo,(0,255,255))
+        cv2.imshow("imagen normal", frame)
+        if cv2.waitKey(1) & 0xFF==ord('s'):
+            break
+
+cap.release()
+cv2.destroyAllWindows()
+
